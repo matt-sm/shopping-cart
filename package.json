@@ -1,0 +1,27 @@
+{
+  "name": "shopping-cart",
+  "version": "1.0.0",
+  "description": "A shopping cart prototype built in node",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --watch",
+    "prettier": "./node_modules/.bin/prettier --print-width 120 --single-quote --no-semi --write \"src/**/*.js\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matt-sm/shopping-cart.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/matt-sm/shopping-cart/issues"
+  },
+  "homepage": "https://github.com/matt-sm/shopping-cart#readme",
+  "devDependencies": {
+    "jest": "^23.4.2",
+    "prettier": "^1.14.0"
+  },
+  "jest": {
+    "testURL": "http://localhost"
+  }
+}
