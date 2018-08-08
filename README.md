@@ -1,5 +1,5 @@
 # shopping-cart
-A shopping cart prototype built in node.
+A shopping cart prototype.
 
 Tested with Node v8.11.3.
 
