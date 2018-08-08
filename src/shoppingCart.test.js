@@ -54,7 +54,7 @@ describe('other interesting scenarios', () => {
   test('invalid promo code not applied', () => {
     shoppingCart.add('ult_small')
     shoppingCart.add('1gb', 'invalid')
-    expect(shoppingCart.total()).toBe(34.80)
+    expect(shoppingCart.total()).toBe(34.8)
     expect(shoppingCart.items()).toEqual(['1 x 1 GB Data-pack', '1 x Unlimited 1GB'])
   })
 
@@ -73,14 +73,14 @@ describe('other interesting scenarios', () => {
     shoppingCart.add('ult_small')
     shoppingCart.add('ult_small')
     shoppingCart.add('ult_small')
-  	expect(shoppingCart.total()).toBe(99.6)
+    expect(shoppingCart.total()).toBe(99.6)
     expect(shoppingCart.items()).toEqual(['6 x Unlimited 1GB'])
   })
 
   test('do not pay for bundled item', () => {
     shoppingCart.add('ult_medium')
     shoppingCart.add('1gb')
-	expect(shoppingCart.total()).toBe(29.9)
+    expect(shoppingCart.total()).toBe(29.9)
     expect(shoppingCart.items()).toEqual(['1 x 1 GB Data-pack', '1 x Unlimited 2GB'])
   })
 })
