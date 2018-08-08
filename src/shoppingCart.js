@@ -5,74 +5,91 @@ const products = [
   { code: '1gb', name: '1 GB Data-pack', price: 9.9 }
 ]
 
-const pricingRules = {
-  discounts: [{ promoCode: 'I<3AMAYSIM', amount: 0.1 }],
-  deals: [{ code: 'ult_small', free: 3 }],
-  bulkDiscounts: [{ code: 'ult_large', threshold: 3, price: 39.9}],
-  bundles: [ {code: 'ult_medium', bundleCode: '1gb'}]
-}
-
+let pricingRules = {}
 let order = []
 
-module.exports.new = () => {
-  order = { items: [], discount: 0 }
+const findProduct = code => products.find(p => p.code === code)
+
+const increment = (items, code) => {
+  const count = code in items ? items[code] + 1 : 1
+  return { ...items, [code]: count }
 }
 
-module.exports.add = (item, promoCode) => {
-  order = { items: [item, ...order.items] }
+const isFreeItem = (code, count) => {
+  const deal = pricingRules.deals.find(d => d.code === code)
+  return deal && (count % deal.free === 0)
+}
 
-  discount = pricingRules.discounts.find(d => d.promoCode === promoCode) || { amount: 0 }
-  order.discount = discount.amount
+const isBundledItem = code => {
+  const bundle = pricingRules.bundles.find(b => b.bundleCode === code)
+  return bundle && order.items.find(i => i === bundle.code)
+}
+
+const applyBulkDiscount = (items, total) => {
+  let amount = total
+  pricingRules.bulkDiscounts.forEach(discount => {
+    if (items[discount.code] > discount.threshold)
+      amount -= items[discount.code] * (findProduct(discount.code).price - discount.price)
+  })
+
+  return amount
+}
+
+const getPromoDiscount = () => pricingRules.discounts.find(d => d.promoCode === order.promoCode) || { amount: 0 }
+
+const applyPromoDiscount = total => Math.round((total - total * getPromoDiscount().amount) * 100) / 100 // round to 2 decimals
+
+const findBundleItem = code => pricingRules.bundles.find(b => b.code === code)
+
+const addBundleItem = (itemCounts, code) => {
+  const bundle = findBundleItem(code)
+  if (bundle && !order.items.find(i => i === bundle.bundleCode)) {
+    return increment(itemCounts, bundle.bundleCode)
+  }
+
+  return itemCounts
+}
+
+module.exports.new = rules => {
+  order = { items: [], promoCode: null }
+  pricingRules = rules
+}
+
+module.exports.add = (code, promoCode) => {
+  if (!findProduct(code)) {
+    throw new Error(`Invalid code: ${code}`)
+  }
+
+  order = { items: [code, ...order.items], promoCode }
 }
 
 module.exports.total = () => {
-  result = order.items.reduce((accumulator, currentValue) => {
-    if (currentValue in accumulator) {
-      accumulator[currentValue]++
-    } else {
-      accumulator[currentValue] = 1
-    }
+  const result = order.items.reduce(
+    (accumulator, code) => {
+      accumulator.itemCounts = increment(accumulator.itemCounts, code)
 
-    // deal
-    deal = pricingRules.deals.find(d => d.code === currentValue)
-    if (deal) {
-      if (accumulator[currentValue] === deal.free) {
+      if (isFreeItem(code, accumulator.itemCounts[code]) || isBundledItem(code, accumulator.itemCounts)) {
         return accumulator
       }
-    }
-    
-    return {...accumulator, total: accumulator.total + products.find(p => p.code === currentValue).price}
-  }, {total: 0})
 
-  // total - bulk discounts
-  pricingRules.bulkDiscounts.map(discount => {
-    if (result[discount.code] >= discount.threshold)
-      result.total = result.total - (result[discount.code] * (products.find(p => p.code === discount.code).price - discount.price))
-  })
+      return {
+        itemCounts: { ...accumulator.itemCounts },
+        runningTotal: accumulator.runningTotal + findProduct(code).price
+      }
+    },
+    { itemCounts: {}, runningTotal: 0 }
+  )
 
-  // total - discount
-  return Math.round((result.total - result.total * order.discount) * 100) / 100
+  const finalAmount = applyBulkDiscount(result.itemCounts, result.runningTotal)
+  return applyPromoDiscount(finalAmount)
 }
 
 module.exports.items = () => {
-  return order.items.reduce((items, item) => {
-    if (item in items) {
-      items[item]++
-    } else {
-      items[item] = 1
-    }
-
-    // add bundled items
-    bundle = pricingRules.bundles.find(b => b.code === item)
-
-    if (bundle) {
-      if (bundle.bundleCode in items) {
-        items[bundle.bundleCode]++
-      } else {
-        items[bundle.bundleCode] = 1
-      }
-    }
-
-    return items
+  const items = order.items.reduce((itemCounts, code) => {
+    const counts = increment(itemCounts, code)
+    
+    return addBundleItem(counts, code)
   }, {})
+
+  return Object.keys(items).map(code => `${items[code]} x ${findProduct(code).name}`)
 }
