@@ -38,8 +38,8 @@ module.exports.total = () => {
     { items: {}, runningTotal: 0 }
   )
 
-  const finalAmount = pricing.applyBulkDiscount(result.items, result.runningTotal)
-  return pricing.applyPromoDiscount(order, finalAmount)
+  const total = pricing.applyBulkDiscount(result.items, result.runningTotal)
+  return pricing.applyPromoDiscount(order.promoCode, total)
 }
 
 module.exports.items = () => {

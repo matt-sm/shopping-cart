@@ -2,8 +2,6 @@ const products = require('./products')
 
 let pricingRules = {}
 
-const getPromoDiscount = order => pricingRules.discounts.find(d => d.promoCode === order.promoCode) || { amount: 0 }
-
 module.exports.new = rules => {
   pricingRules = rules
 }
@@ -30,5 +28,7 @@ module.exports.applyBulkDiscount = (items, total) => {
   return amount
 }
 
-module.exports.applyPromoDiscount = (order, total) =>
-  Math.round((total - total * getPromoDiscount(order).amount) * 100) / 100 // round to 2 decimals
+module.exports.applyPromoDiscount = (promoCode, total) => {
+  const discount = pricingRules.discounts.find(d => d.promoCode === promoCode) || { amount: 0 }
+  return Math.round((total - total * discount.amount) * 100) / 100 // round to 2 decimals
+}

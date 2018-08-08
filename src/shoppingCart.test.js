@@ -58,6 +58,11 @@ describe('other interesting scenarios', () => {
     expect(shoppingCart.items()).toEqual(['1 x 1 GB Data-pack', '1 x Unlimited 1GB'])
   })
 
+  test('empty cart', () => {
+    expect(shoppingCart.total()).toBe(0)
+    expect(shoppingCart.items()).toEqual([])
+  })
+
   test('no bulk discount under threshold', () => {
     shoppingCart.add('ult_large')
     shoppingCart.add('ult_large')
